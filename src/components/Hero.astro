@@ -1,0 +1,72 @@
+---
+// Este componente es la primera sección que verán tus visitantes
+---
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Transforma Tu Cuerpo,<br />
+        <span class="highlight">Alcanza Tus Metas a un solo Click </span>
+      </h1>
+      <p class="hero-subtitle">
+        Planes de entrenamiento personalizados diseñados para ayudarte a lograr tus objetivos fitness.
+        Entrena a tu ritmo, con la guía de un profesional.
+      </p>
+      <div class="hero-cta">
+        <a href="#planes" class="btn btn-primary">Ver Planes</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Estilos específicos del Hero */
+  .hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, #003d6b 100%);
+    color: white;
+    padding: 4rem 0;
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  .highlight {
+    color: var(--color-accent);
+    display: block;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    margin-bottom: 2.5rem;
+    opacity: 0.95;
+    line-height: 1.8;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      min-height: 70vh;
+      padding: 3rem 0;
+    }
+  }
+</style>
