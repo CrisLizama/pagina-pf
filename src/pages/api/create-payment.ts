@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
+export const prerender = false;
+
 // Configurar Mercado Pago con el Access Token
 const client = new MercadoPagoConfig({
   accessToken: import.meta.env.MP_ACCESS_TOKEN,
@@ -13,6 +15,13 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Crear la preferencia de pago
     const preference = new Preference(client);
+
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+
+    console.log('Base URL:', baseUrl);
+    console.log('RequestURl', request.url);
+    console.log('Success URL:', `${baseUrl}/success`);
     
     const result = await preference.create({
       body: {
@@ -27,11 +36,11 @@ export const POST: APIRoute = async ({ request }) => {
           },
         ],
         back_urls: {
-          success: `${request.url.split('/api')[0]}/success`,
-          failure: `${request.url.split('/api')[0]}/failure`,
-          pending: `${request.url.split('/api')[0]}/pending`,
+          success: `${baseUrl}/success`,
+          failure: `${baseUrl}/failure`,
+          pending: `${baseUrl}/pending`,
         },
-        auto_return: 'approved',
+        //auto_return: 'approved',
         statement_descriptor: 'PLAN FITNESS',
       },
     });
