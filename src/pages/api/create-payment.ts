@@ -16,8 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Crear la preferencia de pago
     const preference = new Preference(client);
 
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
+   const baseUrl = import.meta.env.PUBLIC_BASE_URL || 'http://localhost:4321';
 
     console.log('Base URL:', baseUrl);
     console.log('RequestURl', request.url);
@@ -40,7 +39,7 @@ export const POST: APIRoute = async ({ request }) => {
           failure: `${baseUrl}/failure`,
           pending: `${baseUrl}/pending`,
         },
-        //auto_return: 'approved',
+        auto_return: 'approved',
         statement_descriptor: 'PLAN FITNESS',
       },
     });
