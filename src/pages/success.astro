@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { db, Purchase } from 'astro:db';
+import { Resend } from 'resend';
+
+const resend = new Resend(import.meta.env.RESEND_API_KEY);
+
 
 // Leer sesión
 const sessionCookie = Astro.cookies.get('session');
@@ -28,8 +32,29 @@ if (status === 'approved' && session && paymentId) {
       createdAt: new Date(),
     });
     console.log('Compra guardada en DB:', paymentId);
+
+    // Enviar correo de confirmación
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: session.email,
+      subject: '¡Tu compra fue exitosa! 💪',
+      html: `
+        <h1>¡Hola ${session.name}!</h1>
+        <p>Tu compra fue procesada correctamente.</p>
+        <h2>Detalles de tu compra:</h2>
+        <ul>
+          <li><strong>Plan:</strong> ${planId === 'plan-basico' ? 'Rutina Base' : 'Planificación Mensual Personalizada'}</li>
+          <li><strong>Precio:</strong> $${planId === 'plan-basico' ? '10.000' : '60.000'} CLP</li>
+          <li><strong>ID de pago:</strong> ${paymentId}</li>
+        </ul>
+        <p>En las próximas 24 horas recibirás tu plan de entrenamiento.</p>
+        <p>¡Mucho éxito en tu entrenamiento! 💪</p>
+      `,
+    });
+    console.log('Correo enviado a:', session.email);
+
   } catch (error) {
-    console.error('Error guardando compra:', error);
+    console.error('Error:', error);
   }
 }
 ---
