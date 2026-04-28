@@ -17,6 +17,8 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+dist/
+node_modules/
 .env.production
 
 # macOS-specific files
