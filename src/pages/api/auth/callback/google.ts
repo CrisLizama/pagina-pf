@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
         client_secret: import.meta.env.GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: 'http://localhost:4321/api/auth/callback/google',
+        redirect_uri: `${import.meta.env.PUBLIC_BASE_URL}/api/auth/callback/google`,
       }),
     });
 
@@ -81,6 +81,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30,
       path: '/',
+      domain: undefined, // sin restricciones de dominio
     });
 
     return redirect('/');

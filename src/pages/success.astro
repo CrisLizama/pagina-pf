@@ -1,5 +1,37 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { db, Purchase } from 'astro:db';
+
+// Leer sesión
+const sessionCookie = Astro.cookies.get('session');
+const session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
+
+// Leer parámetros que envía Mercado Pago
+const paymentId = Astro.url.searchParams.get('payment_id');
+const status = Astro.url.searchParams.get('status');
+const planId = Astro.url.searchParams.get('external_reference');
+
+console.log('Parámetros recibidos:', { paymentId, status, planId });
+console.log('Sesión:', session?.email);
+
+// Guardar la compra si el pago fue aprobado y hay sesión
+if (status === 'approved' && session && paymentId) {
+  try {
+    await db.insert(Purchase).values({
+      id: paymentId,
+      userId: session.id,
+      planId: planId || 'unknown',
+      planName: planId === 'plan-basico' ? 'Rutina Base' : 'Planificación Mensual Personalizada',
+      price: planId === 'plan-basico' ? 10000 : 60000,
+      status: 'approved',
+      mpPaymentId: paymentId,
+      createdAt: new Date(),
+    });
+    console.log('Compra guardada en DB:', paymentId);
+  } catch (error) {
+    console.error('Error guardando compra:', error);
+  }
+}
 ---
 
 <Layout title="Pago Exitoso">

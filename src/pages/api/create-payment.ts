@@ -15,6 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Crear la preferencia de pago
     const preference = new Preference(client);
+  
 
    const baseUrl = import.meta.env.PUBLIC_BASE_URL || 'http://localhost:4321';
 
@@ -41,6 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
         },
         auto_return: 'approved',
         statement_descriptor: 'PLAN FITNESS',
+        external_reference: planId,
       },
     });
 
