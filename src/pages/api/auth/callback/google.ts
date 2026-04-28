@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { db, eq, User } from 'astro:db';
 
 export const prerender = false;
 
@@ -26,24 +27,59 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
 
     const tokens = await tokenResponse.json();
 
-    // Obtener los datos del usuario
+    // Obtener los datos del usuario desde Google
     const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
 
-    const user = await userResponse.json();
+    const googleUser = await userResponse.json();
+    
+    console.log('Tokens:', tokens);
+    console.log('Google User:', googleUser);
+    console.log('ID:', googleUser.id);
+    console.log('Email:', googleUser.email);
+    console.log('Name:', googleUser.name);
+
+    // Buscar si el usuario ya existe en la DB
+    const existingUser = await db
+      .select()
+      .from(User)
+      .where(eq(User.email, googleUser.email))
+      .get();
+
+    if (existingUser) {
+      // Si ya existe, actualizamos su información
+      await db
+        .update(User)
+        .set({
+          name: googleUser.name,
+          image: googleUser.picture,
+        })
+        .where(eq(User.email, googleUser.email));
+    } else {
+      // Si no existe, lo creamos
+      await db.insert(User).values({
+        id: googleUser.id,
+        name: googleUser.name,
+        email: googleUser.email,
+        image: googleUser.picture,
+        createdAt: new Date(),
+      });
+    }
+
+    console.log('Usuario guardado en DB:', googleUser.email);
 
     // Guardar la sesión en una cookie
     cookies.set('session', JSON.stringify({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.picture,
+      id: googleUser.id,
+      name: googleUser.name,
+      email: googleUser.email,
+      image: googleUser.picture,
     }), {
       httpOnly: true,
-      secure: false, // true en producción
+      secure: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 días
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 

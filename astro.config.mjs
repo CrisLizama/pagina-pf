@@ -7,7 +7,7 @@ export default defineConfig({
   integrations: [react(), db()],
   vite: {
     server: {
-      allowedHosts: ['70be-181-42-128-87.ngrok-free.app']
+      allowedHosts: [process.env.PUBLIC_BASE_URL]  // poner en variable de entorno PUBLIC_BASE_URL
     }
   }
 });
