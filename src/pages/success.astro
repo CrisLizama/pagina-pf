@@ -1,29 +1,40 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { db, Purchase } from 'astro:db';
+import { db, Purchase, User } from 'astro:db';
+import { eq } from 'astro:db';
 import { Resend } from 'resend';
+import fs from 'fs';
+import path from 'path'; 
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
-
-// Leer sesión
 const sessionCookie = Astro.cookies.get('session');
 const session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
 
-// Leer parámetros que envía Mercado Pago
 const paymentId = Astro.url.searchParams.get('payment_id');
 const status = Astro.url.searchParams.get('status');
 const planId = Astro.url.searchParams.get('external_reference');
 
-console.log('Parámetros recibidos:', { paymentId, status, planId });
-console.log('Sesión:', session?.email);
-
-// Guardar la compra si el pago fue aprobado y hay sesión
 if (status === 'approved' && session && paymentId) {
   try {
+    // Asegurarse que el usuario existe en la DB
+    const existingUser = await db.select().from(User).where(eq(User.id, String(session.id))).get();
+
+    if (!existingUser) {
+      await db.insert(User).values({
+        id: String(session.id),
+        name: String(session.name),
+        email: String(session.email),
+        image: String(session.image)  || '',
+        createdAt: new Date(),
+      });
+      console.log('Usuario creado en DB:', session.email);
+    }
+
+    // Guardar la compra
     await db.insert(Purchase).values({
       id: paymentId,
-      userId: session.id,
+      userId: String(session.id),
       planId: planId || 'unknown',
       planName: planId === 'plan-basico' ? 'Rutina Base' : 'Planificación Mensual Personalizada',
       price: planId === 'plan-basico' ? 10000 : 60000,
@@ -33,11 +44,23 @@ if (status === 'approved' && session && paymentId) {
     });
     console.log('Compra guardada en DB:', paymentId);
 
-    // Enviar correo de confirmación
+    // Preparar adjunto según el plan
+    const attachments = [];
+    if (planId === 'plan-basico') {
+      const filePath = path.join(process.cwd(), 'public/planes/rutina-base.csv');
+      const fileContent = fs.readFileSync(filePath);
+      attachments.push({
+        filename: 'Rutina-Base.csv',
+        content: fileContent,
+      });
+    }
+
+    // Enviar correo
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: session.email,
       subject: '¡Tu compra fue exitosa! 💪',
+      attachments,
       html: `
         <h1>¡Hola ${session.name}!</h1>
         <p>Tu compra fue procesada correctamente.</p>
@@ -47,7 +70,10 @@ if (status === 'approved' && session && paymentId) {
           <li><strong>Precio:</strong> $${planId === 'plan-basico' ? '10.000' : '60.000'} CLP</li>
           <li><strong>ID de pago:</strong> ${paymentId}</li>
         </ul>
-        <p>En las próximas 24 horas recibirás tu plan de entrenamiento.</p>
+        ${planId === 'plan-basico' 
+          ? '<p>Adjunto encontrarás tu rutina de entrenamiento.</p>' 
+          : '<p>En las próximas 24 horas me pondré en contacto contigo para comenzar tu planificación personalizada.</p>'
+        }
         <p>¡Mucho éxito en tu entrenamiento! 💪</p>
       `,
     });
