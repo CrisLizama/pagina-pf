@@ -1,12 +1,15 @@
 ---
-// Esta parte de arriba (entre ---) es el "frontmatter"
-// Aquí va código JavaScript/TypeScript que se ejecuta en el servidor
+import LoginButton from '../components/LoginButton';
+
 interface Props {
   title: string;
   description?: string;
 }
 
 const { title, description = "Transforma tu cuerpo con planes de entrenamiento personalizados" } = Astro.props;
+
+const sessionCookie = Astro.cookies.get('session');
+const session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
 ---
 
 <!doctype html>
@@ -20,12 +23,44 @@ const { title, description = "Transforma tu cuerpo con planes de entrenamiento p
     <title>{title}</title>
   </head>
   <body>
-    <!-- Aquí va el contenido de cada página -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="/" class="nav-logo">💪 FitPlans</a>
+        <div class="nav-auth">
+          <LoginButton session={session} client:load />
+        </div>
+      </div>
+    </nav>
+
     <slot />
     
-    <!-- Importamos los estilos globales -->
     <style is:global>
       @import '../styles/global.css';
+
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 1rem 0;
+      }
+
+      .nav-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav-logo {
+        font-size: 1.4rem;
+        font-weight: 800;
+        text-decoration: none;
+        color: var(--color-secondary);
+      }
     </style>
   </body>
 </html>
